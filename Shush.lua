@@ -7,7 +7,7 @@ local PREFIX = "|cff66ccffShush|r: "
 local defaults = {
     enabled = true,
     factionFilter = true,
-    maxLog = 50,
+    maxLog = 10,
     words = {},
     log = {},
 }
