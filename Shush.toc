@@ -1,0 +1,9 @@
+## Interface: 30300
+## Title: Shush
+## Notes: Silences chat by keyword and hides opposing-faction chatter in non-PvP zones.
+## Author: You
+## Version: 1.0
+## OptionalDeps: ElvUI
+## SavedVariables: ShushDB
+
+Shush.lua
