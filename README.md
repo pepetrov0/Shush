@@ -5,14 +5,13 @@
 [Features](#features) • [Installation](#installation) • [Usage](#usage) • [Filters](#filters)
 
 Shush keeps the noise out of your chat. Silence messages by keyword, hide opposing-faction
-chatter outside PvP zones, and check what got muted in a recently-silenced window.
+chatter outside PvP zones, and print what got muted in chat with one command.
 
 ## Features
 
 - 🗯 **Keyword filter** – hide any message that contains a word or phrase from your list
 - ⚔️ **Faction filter** – hide opposing-faction chatter in non-PvP zones
-- 📜 **Recently silenced window** – see the last silenced messages with sender, reason and timestamp
-- 🧩 **ElvUI aware** – the log window is skinned automatically when ElvUI is present
+- 📜 **Recently silenced log** – `/shush log` prints the latest silenced messages in chat, then clears the log
 - ⚙️ Zero configuration to start – works out of the box, settings persist between sessions
 
 ## Installation
@@ -25,9 +24,6 @@ chatter outside PvP zones, and check what got muted in a recently-silenced windo
 
 2. Restart the game client (or use `/reload`, if you have it).
 3. Look for the load message in chat: **Shush loaded. Type /shush for help.**
-
-> [!NOTE]
-> ElvUI is an optional dependency. The addon works fine without it; ElvUI only improves the look of the log window.
 
 > [!NOTE]
 > Requires the WotLK 3.3.5a client (interface version 30300).
@@ -43,7 +39,7 @@ All commands go through `|cff66ccff/shush|r`:
 | `/shush add <word or phrase>` | Silence messages containing this word or phrase |
 | `/shush remove <word or phrase>` | Remove a word from the list (alias: `del`) |
 | `/shush list` | Show all silenced words |
-| `/shush log` | Open the recently silenced window |
+| `/shush log` | Print recently silenced messages in chat, then clear the log |
 | `/shush faction on \| off` | Toggle the opposing-faction filter |
 
 ### Examples
@@ -65,7 +61,8 @@ All commands go through `|cff66ccff/shush|r`:
 
 Applies to say, yell, emote, channel and whisper messages from other players. Your own messages
 are never filtered. Every matching message is hidden from chat and recorded in the
-recently silenced window. The list is capped at the last 50 entries.
+recently silenced log. `/shush log` prints it in chat and then clears it. The list is capped
+at the last 10 entries.
 
 ### Faction filter
 

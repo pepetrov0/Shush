@@ -55,133 +55,22 @@ local function MatchesWord(msg)
 end
 
 ---------------------------------------------------------------------------
--- Log window
+-- Log dump: /shush log prints it to chat and clears it
 ---------------------------------------------------------------------------
 
-local logFrame
-
--- Skin the log window if ElvUI is loaded. Wrapped in pcall so a skinning
--- problem can never break the addon itself.
-local function SkinWithElvUI(f, closeButton, clearButton)
-    if not ElvUI then return end
-
-    local ok = pcall(function()
-        local E = unpack(ElvUI)
-        local S = E and E:GetModule("Skins", true)
-        if not E or not S then return end
-
-        -- Respect the user's "skin Blizzard frames" setting if it exists
-        local skins = E.private and E.private.skins
-        if skins and skins.blizzard and skins.blizzard.enable == false then return end
-
-        if f.SetTemplate then
-            f:SetTemplate("Transparent")
-        end
-        if S.HandleCloseButton then
-            S:HandleCloseButton(closeButton)
-        end
-        if S.HandleButton then
-            S:HandleButton(clearButton)
-        end
-    end)
-
-    if not ok then
-        Print("ElvUI skinning failed; using default look.")
-    end
-end
-
--- Match the log text to the main chat window's font face and size.
-local function ApplyChatFont(f)
-    if not ChatFrame1 then return end
-    local font, size, flags = ChatFrame1:GetFont()
-    if font and size then
-        f.text:SetFont(font, size, flags)
-    end
-end
-
-local function RefreshLog()
-    if not logFrame or not logFrame:IsShown() then return end
-    logFrame.text:Clear()
+local function DumpLog()
     if #ShushDB.log == 0 then
-        logFrame.text:AddMessage("|cff888888Nothing silenced yet.|r")
+        Print("Nothing silenced yet.")
         return
     end
+    Print("recently silenced (" .. #ShushDB.log .. "):")
     for _, e in ipairs(ShushDB.log) do
-        -- Line 1: time and sender. Line 2: reason. Line 3: the message itself.
-        logFrame.text:AddMessage(string.format(
-            "|cff888888[%s]|r  |cff00ccffFrom:|r |cffffd100%s|r", e.t, e.who))
-        logFrame.text:AddMessage(string.format(
-            "     |cffff6666Reason:|r |cffffaa66%s|r", e.why))
-        logFrame.text:AddMessage("     |cffffffff" .. e.msg .. "|r")
-        logFrame.text:AddMessage(" ")
+        Print(string.format(
+            "|cff888888[%s]|r |cffffd100%s|r |cff888888(%s)|r: |cffffffff%s|r",
+            e.t, e.who, e.why, e.msg))
     end
-    logFrame.text:ScrollToBottom()
-end
-
-local function CreateLogFrame()
-    local f = CreateFrame("Frame", "ShushLogFrame", UIParent)
-    f:SetWidth(720)
-    f:SetHeight(480)
-    f:SetPoint("CENTER")
-    f:SetFrameStrata("DIALOG")
-    f:SetMovable(true)
-    f:EnableMouse(true)
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", f.StopMovingOrSizing)
-    f:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true, tileSize = 32, edgeSize = 32,
-        insets = { left = 11, right = 12, top = 12, bottom = 11 },
-    })
-
-    local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOP", 0, -16)
-    title:SetText("Shush - Recently Silenced")
-    title:SetFontObject(GameFontNormalLarge)
-
-    local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
-    close:SetPoint("TOPRIGHT", -6, -6)
-
-    local text = CreateFrame("ScrollingMessageFrame", nil, f)
-    text:SetPoint("TOPLEFT", 20, -40)
-    text:SetPoint("BOTTOMRIGHT", -20, 46)
-    text:SetFontObject(GameFontHighlight)
-    text:SetJustifyH("LEFT")
-    text:SetFading(false)
-    text:SetMaxLines(1000)
-    text:EnableMouseWheel(true)
-    text:SetScript("OnMouseWheel", function(self, delta)
-        if delta > 0 then self:ScrollUp() else self:ScrollDown() end
-    end)
-    f.text = text
-
-    local clear = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    clear:SetWidth(100)
-    clear:SetHeight(24)
-    clear:SetPoint("BOTTOM", 0, 16)
-    clear:SetText("Clear log")
-    clear:SetScript("OnClick", function()
-        wipe(ShushDB.log)
-        RefreshLog()
-    end)
-
-    SkinWithElvUI(f, close, clear)
-
-    f:SetScript("OnShow", function()
-        ApplyChatFont(f)
-        RefreshLog()
-    end)
-    f:Hide()
-
-    tinsert(UISpecialFrames, "ShushLogFrame") -- close with Escape
-    return f
-end
-
-local function ToggleLog()
-    if not logFrame then logFrame = CreateLogFrame() end
-    if logFrame:IsShown() then logFrame:Hide() else logFrame:Show() end
+    wipe(ShushDB.log)
+    Print("log cleared.")
 end
 
 ---------------------------------------------------------------------------
@@ -196,7 +85,6 @@ local function AddToLog(author, msg, reason)
     while #log > ShushDB.maxLog do
         table.remove(log, 1)
     end
-    RefreshLog()
 end
 
 local function ChatFilter(self, event, msg, author, ...)
@@ -248,7 +136,7 @@ local function ShowHelp()
     Print("/shush on | off | toggle")
     Print("/shush add <word or phrase>   /shush remove <word or phrase>")
     Print("/shush list   - show silenced words")
-    Print("/shush log    - open recently silenced window")
+    Print("/shush log    - print recent silenced messages, then clear the log")
     Print("/shush faction on | off   - opposing faction filter (non-PvP zones)")
 end
 
@@ -289,7 +177,7 @@ local function Handler(input)
             Print("silenced words (" .. #ShushDB.words .. "): " .. table.concat(ShushDB.words, ", "))
         end
     elseif cmd == "log" then
-        ToggleLog()
+        DumpLog()
     elseif cmd == "faction" then
         arg = arg:lower()
         if arg == "on" then ShushDB.factionFilter = true
